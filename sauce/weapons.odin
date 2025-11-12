@@ -26,27 +26,27 @@ Weapon :: struct {
 	name:         string,
 	damage:       int,
 	attack_speed: f32,
-	attack_types: [4]proc(damage: int, attack_speed: f32, name: string) -> int,
+	attack_types: [4]proc(weapon: ^Weapon) -> int,
 }
 
-main_attack :: proc(damage: int, attack_speed: f32, name: string) -> int {
-	log.info(name, " attack with damage:", damage)
-	return damage
+main_attack :: proc(weapon: ^Weapon) -> int {
+	log.info(weapon.name, "main attack with damage:", weapon.damage)
+	return weapon.damage
 }
 
-secondary_attack :: proc(damage: int, attack_speed: f32, name: string) -> int {
-	log.info(name, "attack with damage:", damage)
-	return damage
+secondary_attack :: proc(weapon: ^Weapon) -> int {
+	log.info(weapon.name, "secondary attack with damage:", weapon.damage)
+	return weapon.damage
 }
 
-alt_attack :: proc(damage: int, attack_speed: f32, name: string) -> int {
-	log.info(name, "attack with damage:", damage)
-	return damage
+alt_attack :: proc(weapon: ^Weapon) -> int {
+	log.info(weapon.name, "alt attack with damage:", weapon.damage)
+	return weapon.damage
 }
 
-channel_attack :: proc(damage: int, attack_speed: f32, name: string) -> int {
-	log.info(name, "attack with damage:", damage)
-	return damage
+channel_attack :: proc(weapon: ^Weapon) -> int {
+	log.info(weapon.name, "channel attack with damage:", weapon.damage)
+	return weapon.damage
 }
 
 setup_weapons :: proc() -> []Weapon {

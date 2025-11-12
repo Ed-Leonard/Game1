@@ -356,12 +356,6 @@ get_player :: proc() -> ^Entity {
 	return entity_from_handle(ctx.gs.player_handle)
 }
 
-sword_attack :: proc(index: int) -> int {
-	// this is just a placeholder for the actual attack logic
-	log.info("sword attack", index)
-	return 0
-}
-
 setup_player :: proc(e: ^Entity) {
 	e.kind = .player
 
@@ -378,16 +372,16 @@ setup_player :: proc(e: ^Entity) {
 		switch {
 		case input.key_pressed(.LEFT_MOUSE) && !input.key_down(.LEFT_CONTROL):
 			input.consume_key_pressed(.LEFT_MOUSE)
-			damage: int = main_attack(e.weapon.damage, e.weapon.attack_speed, e.weapon.name)
+			damage: int = main_attack(&e.weapon)
 		case input.key_pressed(.LEFT_MOUSE) && input.key_down(.LEFT_CONTROL):
 			input.consume_key_pressed(.LEFT_MOUSE)
-			damage: int = secondary_attack(e.weapon.damage, e.weapon.attack_speed, e.weapon.name)
+			damage: int = alt_attack(&e.weapon)
 		case input.key_pressed(.RIGHT_MOUSE) && !input.key_down(.LEFT_CONTROL):
 			input.consume_key_pressed(.RIGHT_MOUSE)
-			damage: int = alt_attack(e.weapon.damage, e.weapon.attack_speed, e.weapon.name)
+			damage: int = secondary_attack(&e.weapon)
 		case input.key_pressed(.RIGHT_MOUSE) && input.key_down(.LEFT_CONTROL):
 			input.consume_key_pressed(.RIGHT_MOUSE)
-			damage: int = channel_attack(e.weapon.damage, e.weapon.attack_speed, e.weapon.name)
+			damage: int = channel_attack(&e.weapon)
 		}
 
 
@@ -402,6 +396,7 @@ setup_player :: proc(e: ^Entity) {
 			e.last_known_y_dir = input_dir.y
 		}
 
+		// flip sprite based on movement direction
 		e.flip_x = e.last_known_x_dir < 0
 		e.flip_y = e.last_known_y_dir > 0
 
