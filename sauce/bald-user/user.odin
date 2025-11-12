@@ -73,8 +73,10 @@ Sprite_Name :: enum {
 	shadow_medium,
 	bg_repeat_tex0,
 	player_death,
-	player_run,
-	player_idle,
+	player_run_front,
+	player_run_back,
+	player_idle_front,
+	player_idle_back,
 	// to add new sprites, just put the .png in the res/images folder
 	// and add the name to the enum here
 	//
@@ -83,8 +85,8 @@ Sprite_Name :: enum {
 }
 
 sprite_data: [Sprite_Name]Sprite_Data = #partial {
-	.player_idle = {frame_count=2},
-	.player_run = {frame_count=3}
+	.player_idle_front = {frame_count=2},
+	.player_run_front = {frame_count=3}
 }
 
 Sprite_Data :: struct {

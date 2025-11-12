@@ -38,6 +38,7 @@ draw_sprite :: proc(
 	pivot:=utils.Pivot.center_center,
 
 	flip_x:=false,
+	flip_y:=false,
 	draw_offset:=Vec2{},
 
 	// useful for more complex transforms. Could technically leave the pos blank on this + set

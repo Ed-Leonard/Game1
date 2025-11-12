@@ -16,50 +16,72 @@ import fstudio "fmod/studio"
 // just typey typey
 //import fsbank "fmod/fsbank"
 
-import "core:strings"
-import "core:log"
-import "base:runtime"
 import "base:intrinsics"
+import "base:runtime"
 import "core:fmt"
+import "core:log"
+import "core:os"
+import "core:strings"
 
 state: struct {
-	initialized: bool,
-	sound_ticks: u64,
-	system: ^fstudio.SYSTEM,
-	core_system: ^fcore.SYSTEM,
-	bank: ^fstudio.BANK,
-	strings_bank: ^fstudio.BANK,
-	master_ch_group : ^fcore.CHANNELGROUP,
-	
-	sound_emitters: [dynamic]Sound_Emitter,
+	initialized:     bool,
+	sound_ticks:     u64,
+	system:          ^fstudio.SYSTEM,
+	core_system:     ^fcore.SYSTEM,
+	bank:            ^fstudio.BANK,
+	strings_bank:    ^fstudio.BANK,
+	master_ch_group: ^fcore.CHANNELGROUP,
+	sound_emitters:  [dynamic]Sound_Emitter,
 }
 
 Sound_Emitter :: struct {
-	event: ^fstudio.EVENTINSTANCE,
+	event:            ^fstudio.EVENTINSTANCE,
 	last_update_tick: u64,
-	unique_id: string,
+	unique_id:        string,
 }
 
-INVALID_POS :: Vec2{ 99999, 99999 }
+INVALID_POS :: Vec2{99999, 99999}
 
 init :: proc() {
 	using fstudio
 	using state
-	
+
 	//when DEBUG {
-	fmod_error_check(fcore.Debug_Initialize(fcore.DEBUG_LEVEL_WARNING, fcore.DEBUG_MODE.DEBUG_MODE_TTY, nil, "fmod.file"))
+	fmod_error_check(
+		fcore.Debug_Initialize(
+			fcore.DEBUG_LEVEL_WARNING,
+			fcore.DEBUG_MODE.DEBUG_MODE_TTY,
+			nil,
+			"fmod.file",
+		),
+	)
 	//}
 
 	fmod_error_check(System_Create(&system, fcore.VERSION))
-	
+
 	fmod_error_check(System_Initialize(system, 512, INIT_NORMAL, INIT_NORMAL, nil))
-	
-	fmod_error_check(System_LoadBankFile(system, "res/fmod/Master.bank", LOAD_BANK_NORMAL, &bank))
-	fmod_error_check(System_LoadBankFile(system, "res/fmod/Master.strings.bank", LOAD_BANK_NORMAL, &strings_bank))
-	
-	System_GetCoreSystem(system, &core_system);
-	
-	fmod_error_check(fcore.System_GetMasterChannelGroup(core_system, &master_ch_group));
+
+	log.info("CWD:", os.get_current_directory())
+	fmod_error_check(
+		System_LoadBankFile(
+			system,
+			"res/fmod/Master.bank",
+			LOAD_BANK_NORMAL,
+			&bank,
+		),
+	)
+	fmod_error_check(
+		System_LoadBankFile(
+			system,
+			"res/fmod/Master.strings.bank",
+			LOAD_BANK_NORMAL,
+			&strings_bank,
+		),
+	)
+
+	System_GetCoreSystem(system, &core_system)
+
+	fmod_error_check(fcore.System_GetMasterChannelGroup(core_system, &master_ch_group))
 
 	state.initialized = true
 }
@@ -67,47 +89,49 @@ init :: proc() {
 update :: proc(listener_pos: Vec2, master_volume: f32) {
 	using fstudio
 	assert(state.initialized, "sound system not initted yet")
-	
+
 	// set master volume
 	vol := master_volume
 	vol = clamp(vol, 0.0, 1.0)
-	fmod_error_check(fcore.ChannelGroup_SetVolume(state.master_ch_group, vol));
-	
+	fmod_error_check(fcore.ChannelGroup_SetVolume(state.master_ch_group, vol))
+
 	fmod_error_check(System_Update(state.system))
-	
+
 	// update listener pos
-	attributes : fcore._3D_ATTRIBUTES;
-	attributes.position = {listener_pos.x, 0, listener_pos.y};
-	attributes.forward = {0, 0, 1};
-	attributes.up = {0, 1, 0};
-	fmod_error_check(System_SetListenerAttributes(state.system, 0, attributes, nil));
+	attributes: fcore._3D_ATTRIBUTES
+	attributes.position = {listener_pos.x, 0, listener_pos.y}
+	attributes.forward = {0, 0, 1}
+	attributes.up = {0, 1, 0}
+	fmod_error_check(System_SetListenerAttributes(state.system, 0, attributes, nil))
 }
 
-play :: proc(name: string, pos := INVALID_POS, cooldown_ms :f32= 40.0) -> ^fstudio.EVENTINSTANCE {
+play :: proc(name: string, pos := INVALID_POS, cooldown_ms: f32 = 40.0) -> ^fstudio.EVENTINSTANCE {
 	using fstudio
 	using state
-	
+
 	event_desc: ^EVENTDESCRIPTION
 	fmod_error_check(System_GetEvent(system, fmt.ctprint(name), &event_desc))
-	
+
 	instance: ^EVENTINSTANCE
 	fmod_error_check(EventDescription_CreateInstance(event_desc, &instance))
-	
+
 	// force cooldown
-	fmod_error_check(EventInstance_SetProperty(instance, .EVENT_PROPERTY_COOLDOWN, cooldown_ms/1000.0))
-	
+	fmod_error_check(
+		EventInstance_SetProperty(instance, .EVENT_PROPERTY_COOLDOWN, cooldown_ms / 1000.0),
+	)
+
 	fmod_error_check(EventInstance_Start(instance))
-	
+
 	// 3D
-	attributes : fcore._3D_ATTRIBUTES;
-	attributes.position = {pos.x, 0, pos.y};
-	attributes.forward = {0, 0, 1};
-	attributes.up = {0, 1, 0};
-	fmod_error_check(EventInstance_Set3DAttributes(instance, &attributes));
+	attributes: fcore._3D_ATTRIBUTES
+	attributes.position = {pos.x, 0, pos.y}
+	attributes.forward = {0, 0, 1}
+	attributes.up = {0, 1, 0}
+	fmod_error_check(EventInstance_Set3DAttributes(instance, &attributes))
 
 	// auto-release when sound finished
-	fmod_error_check(EventInstance_Release(instance));
-	
+	fmod_error_check(EventInstance_Release(instance))
+
 	return instance
 }
 
@@ -116,12 +140,14 @@ update_sound_emitters :: proc() {
 	// yeet stale guys
 	#reverse for &emitter, i in state.sound_emitters {
 		if emitter.last_update_tick != state.sound_ticks {
-		
+
 			ok := stop(emitter.event)
 			if !ok {
-				log.error("failed to stop emitter. This would be bad because it'd keep playing perhaps. Unless it already died somehow?")
+				log.error(
+					"failed to stop emitter. This would be bad because it'd keep playing perhaps. Unless it already died somehow?",
+				)
 			}
-		
+
 			delete_emitter(&emitter)
 			ordered_remove(&state.sound_emitters, i)
 			log.info("killed sound emitter")
@@ -130,7 +156,7 @@ update_sound_emitters :: proc() {
 
 	state.sound_ticks += 1
 }
-@(private="file")
+@(private = "file")
 delete_emitter :: proc(emitter: ^Sound_Emitter) {
 	delete(emitter.unique_id)
 	emitter^ = {}
@@ -180,13 +206,13 @@ play_continuously :: proc(name: string, unique_id: string, pos := INVALID_POS) {
 	}
 
 	// couldn't find one, so we just make a new one
-	emitter : Sound_Emitter
-	emitter.event = play(name, pos=pos)
+	emitter: Sound_Emitter
+	emitter.event = play(name, pos = pos)
 	emitter.last_update_tick = state.sound_ticks
 	emitter.unique_id = strings.clone(unique_id)
 	append(&state.sound_emitters, emitter)
 	log.info("new sound emitter")
-	
+
 }
 
 stop :: proc(event: ^fstudio.EVENTINSTANCE) -> bool {
@@ -202,17 +228,17 @@ update_pos :: proc(event: ^fstudio.EVENTINSTANCE, pos: Vec2) -> bool {
 	ok := EventInstance_Get3DAttributes(event, &attrib)
 	if ok != .OK {
 		log.warn("FMOD error getting 3d attributes:", fcore.error_string(ok))
-	  return false
+		return false
 	}
-	
+
 	attrib.position = {pos.x, 0, pos.y}
-	
+
 	ok = EventInstance_Set3DAttributes(event, &attrib)
 	if ok != .OK {
 		log.warn("FMOD error setting 3d attributes:", fcore.error_string(ok))
 		return false
 	}
-	
+
 	return true
 }
 
@@ -224,7 +250,7 @@ Vec2 :: [2]f32
 Vec3 :: [3]f32
 Vec4 :: [4]f32
 
-@(private="file")
+@(private = "file")
 fmod_error_check :: proc(result: fcore.RESULT) {
 	if result != .OK {
 		log.error(fcore.error_string(result))

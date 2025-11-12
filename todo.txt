@@ -1,0 +1,28 @@
+IDEAS:
+
+- players attack type can change depending on certain factors
+1. if player is aiming in the direction they are moving
+2. if player is aiming in the opposite direction
+3. sideways directions
+these can potentially affect different things whether it be different attacks entirely or just
+different kinds of damage multipliers or velocity etc. This is based kind of on melee
+
+- poe style skill tree with differnet classes but parts of skill tree are levelled as the player
+goes through each run. Permenant upgrades can be obtained this is the roguelite element.
+
+- different elemental styles of attack and mixture between raw damage, magic, and in betweens. Multiple 
+spell casts and abilities which slots are affected by gear. Better gear gives more slots and increases
+effectiveness of slots. Player can choose between having a bunch of different spells which can combo potentially
+or having few more powerful spells by using bonus multipliers in slots etc.
+
+- active and passive spells
+- active spells are m1, m2 ctrl + m1, ctrl + m2
+- passive spells are boosts or heals i guess and are probably like either 1, 2, 3, 4 or thats maybe weapons
+
+- different forms of magic create different status effects which vombine together to create combos which deal
+extra damdam
+
+
+TODO:
+
+start mapping player functionality
