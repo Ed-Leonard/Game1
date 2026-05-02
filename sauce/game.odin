@@ -364,7 +364,7 @@ setup_player :: proc(e: ^Entity) {
 	e.draw_offset = Vec2{0.5, 5}
 	e.draw_pivot = .bottom_center
 
-	e.weapon = setup_weapons()[0]
+	e.weapon = make_sword()
 
 	e.update_proc = proc(e: ^Entity) {
 
@@ -372,16 +372,20 @@ setup_player :: proc(e: ^Entity) {
 		switch {
 		case input.key_pressed(.LEFT_MOUSE) && !input.key_down(.LEFT_CONTROL):
 			input.consume_key_pressed(.LEFT_MOUSE)
-			damage: int = main_attack(&e.weapon)
+			result := perform_attack(&e.weapon, .Main)
+			log.info("damage: {}, is_crit: {}", result.damage, result.is_crit)
 		case input.key_pressed(.LEFT_MOUSE) && input.key_down(.LEFT_CONTROL):
 			input.consume_key_pressed(.LEFT_MOUSE)
-			damage: int = alt_attack(&e.weapon)
+			result := perform_attack(&e.weapon, .Alt)
+			log.info("damage: {}, is_crit: {}", result.damage, result.is_crit)
 		case input.key_pressed(.RIGHT_MOUSE) && !input.key_down(.LEFT_CONTROL):
 			input.consume_key_pressed(.RIGHT_MOUSE)
-			damage: int = secondary_attack(&e.weapon)
+			result := perform_attack(&e.weapon, .Secondary)
+			log.info("damage: {}, is_crit: {}", result.damage, result.is_crit)
 		case input.key_pressed(.RIGHT_MOUSE) && input.key_down(.LEFT_CONTROL):
 			input.consume_key_pressed(.RIGHT_MOUSE)
-			damage: int = channel_attack(&e.weapon)
+			result := perform_attack(&e.weapon, .Channel)
+			log.info("damage: {}, is_crit: {}", result.damage, result.is_crit)
 		}
 
 
